@@ -1,0 +1,26 @@
+# Dependency directories
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Hardhat artifacts & cache
+blockchain/cache/
+blockchain/artifacts/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Database data
+mongo-data/
+*.sqlite3
+
+# Temporary files & uploads
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+Thumbs.db

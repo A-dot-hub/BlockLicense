@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: blocklicense-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: blocklicense_db
+    volumes:
+      - mongo-data:/data/db
+
+  hardhat-node:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    container_name: blocklicense-hardhat
+    restart: always
+    ports:
+      - "8545:8545"
+    command: npx hardhat node --hostname 0.0.0.0
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blocklicense-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - DATABASE_NAME=blocklicense_db
+      - BLOCKCHAIN_RPC_URL=http://hardhat-node:8545
+      - CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+    depends_on:
+      - mongodb
+      - hardhat-node
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: blocklicense-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+      - VITE_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:

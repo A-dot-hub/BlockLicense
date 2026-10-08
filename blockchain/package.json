@@ -1,0 +1,26 @@
+{
+  "name": "blocklicense-blockchain",
+  "version": "1.0.0",
+  "description": "BlockLicense Smart Contracts & Hardhat Development Environment",
+  "scripts": {
+    "node": "hardhat node",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "hardhat",
+    "smart-contracts",
+    "software-license"
+  ],
+  "author": "BlockLicense Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.2"
+  }
+}
