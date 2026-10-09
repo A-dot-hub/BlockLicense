@@ -15,6 +15,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+import { HARDHAT_CHAIN_ID } from '../services/blockchain';
+
 interface NavbarProps {
   currentTab: string;
   onSelectTab: (tab: string) => void;
@@ -24,12 +26,14 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
   const {
     address,
+    chainId,
     isConnected,
     isAdmin,
     networkName,
     balance,
     connectWallet,
-    disconnectWallet
+    disconnectWallet,
+    switchNetwork
   } = useWallet();
 
   const { user, isAuthenticated, logout } = useAuth();
@@ -118,6 +122,23 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
                       <span>Network: <strong className="text-[#013330]">{networkName}</strong></span>
                       <span>Balance: <strong className="font-mono text-emerald-700">{balance}</strong></span>
                     </div>
+
+                    {chainId !== HARDHAT_CHAIN_ID && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200">
+                        <div className="text-[10px] text-amber-700 font-semibold mb-1">
+                          ⚠️ Connected to {networkName || 'Mainnet'}
+                        </div>
+                        <button
+                          onClick={async () => {
+                            await switchNetwork(HARDHAT_CHAIN_ID);
+                            setAccountDropdownOpen(false);
+                          }}
+                          className="w-full py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-sm"
+                        >
+                          <span>⚡ Switch to Hardhat (10,000 ETH)</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="px-2 pt-2">

@@ -147,15 +147,40 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const switchNetwork = async (targetChainId: number) => {
-    if (wallet.isMetaMask && typeof window !== 'undefined' && (window as any).ethereum) {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      const hexChain = '0x' + targetChainId.toString(16);
       try {
-        const hexChain = '0x' + targetChainId.toString(16);
         await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: hexChain }]
         });
-      } catch (err) {
-        console.warn('Network switch error:', err);
+      } catch (switchError: any) {
+        // 4902 error code means network is not added to MetaMask yet
+        if (switchError.code === 4902 || switchError?.message?.includes('Unrecognized') || switchError?.message?.includes('not found')) {
+          if (targetChainId === HARDHAT_CHAIN_ID) {
+            try {
+              await (window as any).ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: hexChain,
+                    chainName: 'Hardhat Localhost (31337)',
+                    rpcUrls: ['http://127.0.0.1:8545'],
+                    nativeCurrency: {
+                      name: 'Local Test Ether',
+                      symbol: 'ETH',
+                      decimals: 18
+                    }
+                  }
+                ]
+              });
+            } catch (addError) {
+              console.error('Failed to add Hardhat network:', addError);
+            }
+          }
+        } else {
+          console.warn('Network switch error:', switchError);
+        }
       }
     }
     setWallet(prev => ({
