@@ -1,4 +1,5 @@
 # BlockLicense
+
 ### Blockchain-Based Software License Ownership & Authenticity Verification System
 
 BlockLicense is a full-stack, enterprise-grade decentralized platform designed to solve critical software piracy, unauthorized license transfers, fraudulent key generation, and binary tampering challenges. By coupling Solidity smart contracts on the Ethereum Virtual Machine (EVM) with SHA-256 cryptographic software digests, MongoDB off-chain document tracking, and high-speed Web Crypto APIs, BlockLicense provides an immutable, transparent, and publicly verifiable single source of truth for software authenticity.
@@ -16,6 +17,7 @@ Traditional software licensing paradigms rely heavily on centralized vendor auth
 - **Vendor Lock-in & Record Tampering:** Centralized databases can be modified, deleted, or taken offline.
 
 **BlockLicense solves these challenges through:**
+
 1. **Immutable Smart Contracts:** Critical license parameters (License ID, Release SHA-256 Hash, Owner Address, Expiry, and Status) are etched on an EVM blockchain.
 2. **Cryptographic Binary Anchoring:** Software files are digested locally via SHA-256. Comparing local binaries against the on-chain hash flags even a 1-bit alteration.
 3. **Decentralized Ownership Tracking:** Licenses are owned by Ethereum addresses. Ownership transfers require cryptographic signatures from the current owner.
@@ -56,12 +58,12 @@ Traditional software licensing paradigms rely heavily on centralized vendor auth
 
 ### On-Chain vs. Off-Chain Separation of Concerns
 
-| Attribute | On-Chain (Smart Contract) | Off-Chain (MongoDB / App Layer) |
-| :--- | :--- | :--- |
-| **Data Scope** | Internal ID, Software SHA-256, Owner Wallet, Expiry, Status, Event Logs | Customer Name, Email, Billing Address, Human ID (`BL-2026-000001`), App Description |
-| **Storage Cost** | Minimal gas consumption (32-byte hash, 20-byte address) | Free arbitrary document storage |
-| **Trust Model** | Cryptographically tamper-evident, decentralized consensus | Fast querying, pagination, search, and analytics |
-| **Binary Storage** | **NEVER store software binaries on blockchain** | Binaries hashed in streaming memory; zero permanent file retention |
+| Attribute          | On-Chain (Smart Contract)                                               | Off-Chain (MongoDB / App Layer)                                                     |
+| :----------------- | :---------------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
+| **Data Scope**     | Internal ID, Software SHA-256, Owner Wallet, Expiry, Status, Event Logs | Customer Name, Email, Billing Address, Human ID (`BL-2026-000001`), App Description |
+| **Storage Cost**   | Minimal gas consumption (32-byte hash, 20-byte address)                 | Free arbitrary document storage                                                     |
+| **Trust Model**    | Cryptographically tamper-evident, decentralized consensus               | Fast querying, pagination, search, and analytics                                    |
+| **Binary Storage** | **NEVER store software binaries on blockchain**                         | Binaries hashed in streaming memory; zero permanent file retention                  |
 
 ---
 
@@ -155,6 +157,7 @@ struct License {
 ```
 
 ### Core Invariants & Security Controls
+
 1. **Access Control:** Only `companyAdmin` or `authorizedIssuers` can call `issueLicense` or `revokeLicense`.
 2. **Duplicate Prevention:** Enforces `require(!licenseExists[_id])`.
 3. **Owner-Only Transfers:** `require(msg.sender == lic.owner)` prevents unauthorized wallet transfers.
@@ -167,21 +170,22 @@ struct License {
 ## 6. Setup & Execution Guide
 
 ### Prerequisites
+
 - Node.js `v18.x`, `v20.x`, or `v22.x`
 - Python `3.10+` (Python 3.10 – 3.13 supported)
-- MongoDB `v6.0+` *(Optional: includes an automatic resilient in-memory database store for instant local demos without installing MongoDB)*
-- Git & MetaMask Extension *(Optional: built-in demo account switcher lets you switch between Admin, Owner, and User roles instantly without MetaMask)*
+- MongoDB `v6.0+` _(Optional: includes an automatic resilient in-memory database store for instant local demos without installing MongoDB)_
+- Git & MetaMask Extension _(Optional: built-in demo account switcher lets you switch between Admin, Owner, and User roles instantly without MetaMask)_
 
 ---
 
 ### Services & Port Reference
 
-| Service | Working Directory | Port / URL | Description |
-| :--- | :--- | :--- | :--- |
-| **Local Hardhat Node** | `./blockchain` | [`http://127.0.0.1:8545`](http://127.0.0.1:8545) | EVM RPC node (`Chain ID: 31337`) with 20 funded test accounts |
-| **Smart Contract** | `./blockchain` | `0x5FbDB2315678afecb367f032d93F642f64180aa3` | `SoftwareLicense.sol` deployed on localhost |
-| **FastAPI Backend** | `./backend` | [`http://127.0.0.1:8000`](http://127.0.0.1:8000) (Docs: [`/docs`](http://127.0.0.1:8000/docs)) | Off-chain metadata REST API, SHA-256 binary validation |
-| **React Frontend** | Root directory (`.`) | [`http://localhost:3000`](http://localhost:3000) | Web interface (Vite, Tailwind CSS, Ethers.js v6) |
+| Service                | Working Directory    | Port / URL                                                                                     | Description                                                   |
+| :--------------------- | :------------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
+| **Local Hardhat Node** | `./blockchain`       | [`http://127.0.0.1:8545`](http://127.0.0.1:8545)                                               | EVM RPC node (`Chain ID: 31337`) with 20 funded test accounts |
+| **Smart Contract**     | `./blockchain`       | `0x5FbDB2315678afecb367f032d93F642f64180aa3`                                                   | `SoftwareLicense.sol` deployed on localhost                   |
+| **FastAPI Backend**    | `./backend`          | [`http://127.0.0.1:8000`](http://127.0.0.1:8000) (Docs: [`/docs`](http://127.0.0.1:8000/docs)) | Off-chain metadata REST API, SHA-256 binary validation        |
+| **React Frontend**     | Root directory (`.`) | [`http://localhost:3000`](http://localhost:3000)                                               | Web interface (Vite, Tailwind CSS, Ethers.js v6)              |
 
 ---
 
@@ -190,23 +194,27 @@ struct License {
 Follow these 4 terminals to run the entire stack:
 
 #### Terminal 1: Start Blockchain Node
+
 ```bash
 # Windows (PowerShell / Command Prompt)
 cd blockchain
 npm install
-npx hardhat node
+npx hardhat node  //if installed run this directly
 
 # Linux / macOS
 cd blockchain
 npm install
 npx hardhat node
 ```
-*Node starts on `http://127.0.0.1:8545` with 20 funded test accounts (10,000 ETH each).*
+
+_Node starts on `http://127.0.0.1:8545` with 20 funded test accounts (10,000 ETH each)._
 
 ---
 
 #### Terminal 2: Deploy Smart Contract
+
 Leave Terminal 1 running, and in a second terminal deploy the smart contract:
+
 ```bash
 # Windows (PowerShell / Command Prompt)
 cd blockchain
@@ -216,7 +224,9 @@ npx hardhat run scripts/deploy.js --network localhost
 cd blockchain
 npx hardhat run scripts/deploy.js --network localhost
 ```
-*Output:*
+
+_Output:_
+
 ```text
 Contract deployed successfully
 Contract Address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
@@ -228,6 +238,7 @@ Saved deployment config to frontend and backend contracts directories.
 ---
 
 #### Terminal 3: Start FastAPI Backend
+
 ```bash
 # Windows (PowerShell)
 cd backend
@@ -251,12 +262,15 @@ pip install -r requirements.txt
 python seed.py
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-*API documentation and interactive Swagger UI are available at `http://127.0.0.1:8000/docs`.*
+
+_API documentation and interactive Swagger UI are available at `http://127.0.0.1:8000/docs`._
 
 ---
 
 #### Terminal 4: Start React Frontend
+
 In a new terminal from the **project root directory** (where `package.json` and `src/` are located):
+
 ```bash
 # Windows (PowerShell / Command Prompt)
 npm install
@@ -266,20 +280,25 @@ npm run dev
 npm install
 npm run dev
 ```
-*Open `http://localhost:3000` in your browser.*
+
+_Open `http://localhost:3000` in your browser._
 
 ---
 
 ### Production Build
+
 To generate an optimized production bundle of the React frontend:
+
 ```bash
 npm run build
 ```
+
 Production assets are generated in `dist/`.
 
 ---
 
 ### Troubleshooting & Common Tips
+
 1. **PowerShell Script Execution Policy:**
    If activating a virtual environment fails with `running scripts is disabled on this system`, either run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` or directly invoke the binary executables: `.\venv\Scripts\python.exe` and `.\venv\Scripts\uvicorn.exe`.
 2. **MongoDB Not Installed:**
@@ -292,6 +311,7 @@ Production assets are generated in `dist/`.
 ## 7. Testing Suites
 
 ### Hardhat Smart Contract Tests
+
 Run the 18-test suite verifying deployment, issuance, duplicate prevention, verification, transfers, unauthorized rejection, revocations, and time expirations:
 
 ```bash
@@ -300,6 +320,7 @@ npx hardhat test
 ```
 
 ### FastAPI Backend Tests
+
 Run the endpoint integration suite verifying schemas, health, verification routes, and dashboard analytics:
 
 ```bash
@@ -322,12 +343,12 @@ Follow this sequence to demonstrate all system capabilities during evaluation:
 3. **Step 3:** Start MongoDB or allow built-in resilient database layer to initialize.
 4. **Step 4:** Start the FastAPI backend on port 8000.
 5. **Step 5:** Open `http://localhost:3000` to view the BlockLicense dashboard.
-6. **Step 6:** Connect MetaMask or use the account selector (select *Software Company Admin*).
-7. **Step 7:** Navigate to **Issue License** (`/issue-license`). Fill in Software Name: *SecureSuite Pro*, Version: *4.2.1*.
+6. **Step 6:** Connect MetaMask or use the account selector (select _Software Company Admin_).
+7. **Step 7:** Navigate to **Issue License** (`/issue-license`). Fill in Software Name: _SecureSuite Pro_, Version: _4.2.1_.
 8. **Step 8:** Upload an authentic software release binary or click "Use sample software file". Observe real-time browser SHA-256 generation.
 9. **Step 9:** Click **Sign & Mint License On-Chain**. The smart contract records the transaction on-chain.
 10. **Step 10:** Click **Show QR Code** to inspect and download the cryptographic verification QR.
-11. **Step 11:** Open the public verification page (`/verify/BL-2026-000001` or click *Test Public Verification*).
+11. **Step 11:** Open the public verification page (`/verify/BL-2026-000001` or click _Test Public Verification_).
 12. **Step 12:** Receive the **✓ VERIFIED & ACTIVE** badge, confirming on-chain record existence.
 13. **Step 13:** Navigate to **Verify Software** (`/verify-software`).
 14. **Step 14:** Upload or simulate the authentic release binary. Receive **✓ AUTHENTIC SOFTWARE: SHA-256 digest matches on-chain record**.
@@ -335,7 +356,7 @@ Follow this sequence to demonstrate all system capabilities during evaluation:
 16. **Step 16:** Observe the instant security alert: **✗ HASH MISMATCH: Software may have been modified or corrupted**.
 17. **Step 17:** Navigate to **Transfer License** (`/transfer-license`). Select active license `BL-2026-000001` and enter Rahul's recipient wallet (`0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`).
 18. **Step 18:** Confirm and sign transaction. Verify that the new owner is registered on-chain and appears in the **Immutable Ownership Audit Trail**.
-19. **Step 19:** Navigate to **Revoke License** (`/revoke-license`). Enter reason *"Breach of EULA"* and sign on-chain revocation as Admin.
+19. **Step 19:** Navigate to **Revoke License** (`/revoke-license`). Enter reason _"Breach of EULA"_ and sign on-chain revocation as Admin.
 20. **Step 20:** Return to `/verify` and check `BL-2026-000001`. Notice that the status has irreversibly changed to **✗ REVOKED**, preventing all subsequent transfers.
 
 ---
@@ -360,4 +381,5 @@ Follow this sequence to demonstrate all system capabilities during evaluation:
 ---
 
 ## 11. License
+
 This project is licensed under the MIT License.
