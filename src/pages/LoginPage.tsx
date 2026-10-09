@@ -23,12 +23,12 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
-  const { loginWithCredentials, loginWithWallet, switchDemoRole } = useAuth();
+  const { loginWithCredentials, loginWithWallet } = useAuth();
   const { address, isConnected, connectWallet } = useWallet();
 
   const [authMode, setAuthMode] = useState<'credentials' | 'wallet'>('credentials');
-  const [email, setEmail] = useState('abhishek@blocklicense.io');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +36,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email.trim()) {
-      setError('Please provide an email address.');
+    if (!email.trim() || !password.trim()) {
+      setError('Please provide your email address and password.');
       return;
     }
     setIsSubmitting(true);
@@ -62,7 +62,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
       let targetAddr = address;
       if (!targetAddr) {
         await connectWallet();
-        targetAddr = address || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+        targetAddr = address;
+      }
+      if (!targetAddr) {
+        setError('Please connect your Web3 wallet to authenticate.');
+        return;
       }
       const ok = await loginWithWallet(targetAddr);
       if (ok) {
@@ -73,11 +77,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleQuickDemoSelect = (role: 'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR') => {
-    switchDemoRole(role);
-    onNavigate('dashboard');
   };
 
   return (
@@ -273,10 +272,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                     <span className="font-bold text-[#013330]">Connected Ethereum Identity</span>
                   </div>
                   <div className="font-mono text-[#013330] text-[11px] break-all bg-white p-2.5 rounded-xl border border-slate-200 font-bold">
-                    {address || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'}
+                    {address || 'Wallet not connected'}
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                    By signing in with your wallet, you execute a cryptographically signed non-transaction challenge proving private key control.
+                    {address
+                      ? 'By signing in with your wallet, you execute a cryptographically signed non-transaction challenge proving private key control.'
+                      : 'Please connect your Web3 wallet (MetaMask) to authenticate your decentralized identity.'}
                   </p>
                 </div>
 
@@ -294,45 +295,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   ) : (
                     <>
                       <Wallet size={15} className="text-emerald-400" />
-                      <span>Sign in With Connected Wallet</span>
+                      <span>{address ? 'Sign in With Connected Wallet' : 'Connect Wallet to Sign In'}</span>
                     </>
                   )}
                 </button>
               </div>
             )}
-
-            {/* Quick Demo Fast-Logins */}
-            <div className="pt-6 mt-6 border-t border-slate-100">
-              <span className="text-[11px] text-slate-500 block mb-2 font-bold">
-                One-Click Presentation Logins:
-              </span>
-              <div className="grid grid-cols-3 gap-2 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoSelect('VENDOR_ADMIN')}
-                  className="p-2.5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-slate-800 transition-colors text-center cursor-pointer"
-                >
-                  <strong className="block text-[#013330] font-bold">Vendor Admin</strong>
-                  <span className="text-[10px] text-slate-500">Issuer / Deployer</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoSelect('CUSTOMER')}
-                  className="p-2.5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-slate-800 transition-colors text-center cursor-pointer"
-                >
-                  <strong className="block text-emerald-700 font-bold">Customer</strong>
-                  <span className="text-[10px] text-slate-500">License Owner</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoSelect('AUDITOR')}
-                  className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-slate-800 transition-colors text-center cursor-pointer"
-                >
-                  <strong className="block text-amber-700 font-bold">Auditor</strong>
-                  <span className="text-[10px] text-slate-500">Security Verifier</span>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Footer Navigation */}

@@ -24,12 +24,12 @@ interface IssueLicensePageProps {
 export const IssueLicensePage: React.FC<IssueLicensePageProps> = ({ onNavigate }) => {
   const { address, isConnected, isAdmin } = useWallet();
 
-  const [softwareName, setSoftwareName] = useState('SecureSuite Pro');
-  const [softwareVersion, setSoftwareVersion] = useState('4.2.1');
+  const [softwareName, setSoftwareName] = useState('');
+  const [softwareVersion, setSoftwareVersion] = useState('');
   const [licenseType, setLicenseType] = useState<'Standard' | 'Professional' | 'Enterprise' | 'Developer' | 'OEM'>('Enterprise');
-  const [customerName, setCustomerName] = useState('Abhishek Enterprise');
-  const [customerEmail, setCustomerEmail] = useState('licenses@abhishek-enterprise.com');
-  const [ownerWallet, setOwnerWallet] = useState('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [ownerWallet, setOwnerWallet] = useState(address || '');
 
   // Default expiry 1 year ahead
   const defaultExpiry = new Date();
@@ -38,7 +38,7 @@ export const IssueLicensePage: React.FC<IssueLicensePageProps> = ({ onNavigate }
 
   // File upload & hash state
   const [file, setFile] = useState<File | null>(null);
-  const [softwareHash, setSoftwareHash] = useState<string>('a3f7c9b1d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6');
+  const [softwareHash, setSoftwareHash] = useState<string>('');
   const [isHashing, setIsHashing] = useState<boolean>(false);
 
   // Submission state

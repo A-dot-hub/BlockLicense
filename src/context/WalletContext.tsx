@@ -1,35 +1,81 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ethers } from 'ethers';
 import {
   WalletState,
   HARDHAT_CHAIN_ID,
   SEPOLIA_CHAIN_ID,
-  COMPANY_ADMIN_ADDRESS,
-  DEMO_ACCOUNTS
+  COMPANY_ADMIN_ADDRESS
 } from '../services/blockchain';
 
 interface WalletContextType extends WalletState {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  selectDemoAccount: (address: string) => void;
   switchNetwork: (chainId: number) => Promise<void>;
-  isDemoAccount: boolean;
-  activeDemoAccountName: string;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wallet, setWallet] = useState<WalletState>({
-    address: COMPANY_ADMIN_ADDRESS, // Defaults to company admin for smooth first-time demo
-    chainId: HARDHAT_CHAIN_ID,
-    networkName: 'Hardhat Localhost (31337)',
-    isConnected: true,
+    address: null,
+    chainId: null,
+    networkName: 'Not Connected',
+    isConnected: false,
     isMetaMask: false,
-    isAdmin: true,
-    balance: '100.0 ETH'
+    isAdmin: false,
+    balance: '0 ETH'
   });
 
-  const [activeDemoName, setActiveDemoName] = useState<string>('Software Company (Admin)');
+  const updateWalletFromAccounts = async (accounts: string[]) => {
+    if (!accounts || accounts.length === 0) {
+      setWallet({
+        address: null,
+        chainId: null,
+        networkName: 'Not Connected',
+        isConnected: false,
+        isMetaMask: false,
+        isAdmin: false,
+        balance: '0 ETH'
+      });
+      return;
+    }
+
+    const addr = accounts[0];
+    const isAdmin = addr.toLowerCase() === COMPANY_ADMIN_ADDRESS.toLowerCase();
+
+    try {
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const network = await provider.getNetwork();
+      const chainId = Number(network.chainId);
+      const balanceBig = await provider.getBalance(addr);
+      const balanceEth = parseFloat(ethers.formatEther(balanceBig)).toFixed(4) + ' ETH';
+
+      let netName = `Chain ID: ${chainId}`;
+      if (chainId === HARDHAT_CHAIN_ID) netName = 'Hardhat Localhost (31337)';
+      else if (chainId === SEPOLIA_CHAIN_ID) netName = 'Sepolia Testnet';
+      else if (chainId === 1) netName = 'Ethereum Mainnet';
+
+      setWallet({
+        address: addr,
+        chainId,
+        networkName: netName,
+        isConnected: true,
+        isMetaMask: true,
+        isAdmin,
+        balance: balanceEth
+      });
+    } catch {
+      setWallet({
+        address: addr,
+        chainId: HARDHAT_CHAIN_ID,
+        networkName: 'Connected',
+        isConnected: true,
+        isMetaMask: true,
+        isAdmin,
+        balance: '0 ETH'
+      });
+    }
+  };
 
   // Check if MetaMask is already connected on load
   useEffect(() => {
@@ -38,27 +84,36 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         try {
           const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
           if (accounts && accounts.length > 0) {
-            const currentChain = await (window as any).ethereum.request({ method: 'eth_chainId' });
-            const chainIdDec = parseInt(currentChain, 16);
-            const addr = accounts[0];
-            const isAdmin = addr.toLowerCase() === COMPANY_ADMIN_ADDRESS.toLowerCase();
-            setWallet({
-              address: addr,
-              chainId: chainIdDec,
-              networkName: chainIdDec === SEPOLIA_CHAIN_ID ? 'Sepolia Testnet' : `Chain ID: ${chainIdDec}`,
-              isConnected: true,
-              isMetaMask: true,
-              isAdmin,
-              balance: '2.45 ETH'
-            });
-            setActiveDemoName('MetaMask Connected');
+            await updateWalletFromAccounts(accounts);
           }
         } catch (err) {
           console.warn('MetaMask check error:', err);
         }
       }
     };
+
     checkExistingConnection();
+
+    // Listen to account and chain changes
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      const ethereum = (window as any).ethereum;
+
+      const handleAccountsChanged = (accs: string[]) => {
+        updateWalletFromAccounts(accs);
+      };
+
+      const handleChainChanged = () => {
+        window.location.reload();
+      };
+
+      ethereum.on?.('accountsChanged', handleAccountsChanged);
+      ethereum.on?.('chainChanged', handleChainChanged);
+
+      return () => {
+        ethereum.removeListener?.('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener?.('chainChanged', handleChainChanged);
+      };
+    }
   }, []);
 
   const connectWallet = async () => {
@@ -67,57 +122,28 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const accounts = await (window as any).ethereum.request({
           method: 'eth_requestAccounts'
         });
-        const currentChain = await (window as any).ethereum.request({ method: 'eth_chainId' });
-        const chainIdDec = parseInt(currentChain, 16);
-        const addr = accounts[0];
-        const isAdmin = addr.toLowerCase() === COMPANY_ADMIN_ADDRESS.toLowerCase();
-
-        setWallet({
-          address: addr,
-          chainId: chainIdDec,
-          networkName: chainIdDec === SEPOLIA_CHAIN_ID ? 'Sepolia Testnet' : 'Localhost (31337)',
-          isConnected: true,
-          isMetaMask: true,
-          isAdmin,
-          balance: '5.12 ETH'
-        });
-        setActiveDemoName('MetaMask Account');
-        return;
+        if (accounts && accounts.length > 0) {
+          await updateWalletFromAccounts(accounts);
+        }
       } catch (err: any) {
-        console.warn('User rejected or MetaMask unavailable:', err);
+        console.error('Wallet connection error:', err);
+        throw err;
       }
+    } else {
+      alert('MetaMask or Web3 wallet extension not detected. Please install MetaMask to connect your wallet.');
     }
-    // Fallback if MetaMask not available or rejected
-    selectDemoAccount(COMPANY_ADMIN_ADDRESS);
   };
 
   const disconnectWallet = () => {
     setWallet({
       address: null,
       chainId: null,
-      networkName: 'Disconnected',
+      networkName: 'Not Connected',
       isConnected: false,
       isMetaMask: false,
       isAdmin: false,
       balance: '0 ETH'
     });
-    setActiveDemoName('None');
-  };
-
-  const selectDemoAccount = (address: string) => {
-    const acc = DEMO_ACCOUNTS.find(a => a.address.toLowerCase() === address.toLowerCase()) || DEMO_ACCOUNTS[0];
-    const isAdmin = acc.role === 'ADMIN' || acc.address.toLowerCase() === COMPANY_ADMIN_ADDRESS.toLowerCase();
-
-    setWallet({
-      address: acc.address,
-      chainId: HARDHAT_CHAIN_ID,
-      networkName: 'Hardhat Localhost (31337)',
-      isConnected: true,
-      isMetaMask: false,
-      isAdmin,
-      balance: '100.0 ETH'
-    });
-    setActiveDemoName(acc.name);
   };
 
   const switchNetwork = async (targetChainId: number) => {
@@ -145,10 +171,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...wallet,
         connectWallet,
         disconnectWallet,
-        selectDemoAccount,
-        switchNetwork,
-        isDemoAccount: !wallet.isMetaMask && wallet.isConnected,
-        activeDemoAccountName: activeDemoName
+        switchNetwork
       }}
     >
       {children}

@@ -178,18 +178,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               className="flex flex-wrap items-center justify-center gap-4 mt-10"
             >
               <button
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => onNavigate('signup')}
+                className="px-7 py-3.5 text-sm font-bold text-[#013330] bg-emerald-400 hover:bg-emerald-300 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>Create Account</span>
+                <ArrowRight size={16} />
+              </button>
+              <button
+                onClick={() => onNavigate('login')}
                 className="px-7 py-3.5 text-sm font-bold text-white bg-[#013330] hover:bg-[#024945] rounded-2xl transition-all shadow-xl shadow-[#013330]/25 flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span>Launch Authority Console</span>
-                <ArrowRight size={16} />
+                <span>Log In</span>
               </button>
               <button
                 onClick={() => onNavigate('verify')}
                 className="px-7 py-3.5 text-sm font-bold text-[#013330] bg-white hover:bg-slate-50 border border-blue-200 rounded-2xl transition-all flex items-center gap-2 cursor-pointer metamask-card-shadow hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ShieldCheck size={16} className="text-emerald-600" />
-                <span>Verify License Record</span>
+                <span>Verify License</span>
               </button>
               <button
                 onClick={() => onNavigate('verify-software')}
@@ -344,14 +350,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     }`}
                 >
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono text-[#013330] font-bold">BL-2026-000001</span>
-                    <span className="text-[11px] text-emerald-700 font-bold">✓ ACTIVE</span>
+                    <span className="font-mono text-[#013330] font-bold">SMART CONTRACT</span>
+                    <span className="text-[11px] text-emerald-700 font-bold">✓ ON-CHAIN</span>
                   </div>
                   <div className="text-sm font-bold text-[#013330] font-display">
-                    SecureSuite Pro v4.2.1
+                    SoftwareLicense.sol
                   </div>
                   <div className="text-[11px] text-slate-600 font-mono truncate">
-                    Owner: 0x70997970C51812dc3A010C7...
+                    Non-Custodial License Minting
                   </div>
                 </div>
 
@@ -368,11 +374,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <span className="text-[11px] text-slate-500 font-semibold">32 BYTES</span>
                   </div>
                   <div className="text-xs text-[#013330] font-mono break-all line-clamp-2 font-bold">
-                    a3f7c9b1d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6
+                    Web Crypto Streaming Digest
                   </div>
                   <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
                     <CheckCircle2 size={12} className="text-emerald-600" />
-                    <span>Exact Byte-for-Byte Match</span>
+                    <span>Exact Byte-for-Byte Verification</span>
                   </div>
                 </div>
 
@@ -385,14 +391,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     }`}
                 >
                   <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-mono text-[#013330] font-bold">EVENT STREAM</span>
+                    <span className="font-mono text-[#013330] font-bold">AUDIT TRAIL</span>
                     <span className="text-[11px] text-slate-500 font-semibold">BLOCK #{currentBlock}</span>
                   </div>
                   <div className="text-xs text-slate-800 font-bold">
-                    LicenseTransferred
+                    Immutable Events
                   </div>
                   <div className="text-[11px] text-slate-600 font-mono">
-                    0xf39F... → 0x7099...
+                    Mint · Transfer · Revoke
                   </div>
                 </div>
               </div>

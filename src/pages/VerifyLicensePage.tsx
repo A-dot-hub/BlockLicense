@@ -29,7 +29,7 @@ export const VerifyLicensePage: React.FC<VerifyLicensePageProps> = ({
   initialLicenseId,
   onNavigate
 }) => {
-  const [searchInput, setSearchInput] = useState<string>(initialLicenseId || 'BL-2026-000001');
+  const [searchInput, setSearchInput] = useState<string>(initialLicenseId || '');
   const [verifiedLicense, setVerifiedLicense] = useState<LicenseRecord | null>(null);
   const [verificationResult, setVerificationResult] = useState<'VALID' | 'EXPIRED' | 'REVOKED' | 'NOT_FOUND' | null>(null);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -86,8 +86,6 @@ export const VerifyLicensePage: React.FC<VerifyLicensePageProps> = ({
     if (initialLicenseId) {
       setSearchInput(initialLicenseId);
       performVerification(initialLicenseId);
-    } else {
-      performVerification('BL-2026-000001');
     }
   }, [initialLicenseId]);
 

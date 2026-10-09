@@ -25,7 +25,7 @@ export const VerifySoftwarePage: React.FC<VerifySoftwarePageProps> = ({
   initialLicenseId,
   onNavigate
 }) => {
-  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || 'BL-2026-000001');
+  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || '');
   const [targetLicense, setTargetLicense] = useState<LicenseRecord | null>(null);
 
   // File state

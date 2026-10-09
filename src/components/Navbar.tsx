@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
-import { DEMO_ACCOUNTS } from '../services/blockchain';
 import { BlockLicenseLogo } from './BlockLicenseLogo';
 import {
-  ShieldCheck,
   ChevronDown,
   Menu,
   X,
   Wallet,
-  RotateCcw,
-  CheckCircle2,
-  ExternalLink,
-  User,
   LogOut,
   LogIn,
-  UserPlus
+  UserPlus,
+  ShieldCheck,
+  CheckCircle2,
+  ExternalLink
 } from 'lucide-react';
-import { StorageService } from '../services/storage';
 
 interface NavbarProps {
   currentTab: string;
@@ -25,17 +21,18 @@ interface NavbarProps {
   onRefreshData?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefreshData }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
   const {
     address,
     isConnected,
     isAdmin,
     networkName,
+    balance,
     connectWallet,
-    selectDemoAccount
+    disconnectWallet
   } = useWallet();
 
-  const { user, isAuthenticated, logout, switchDemoRole } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -51,17 +48,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
     { id: 'revoke', label: 'Revoke' }
   ];
 
-  const handleResetDemo = () => {
-    StorageService.resetToDemo();
-    if (onRefreshData) onRefreshData();
-    setAccountDropdownOpen(false);
-  };
-
   return (
     <header className="sticky top-0 z-40 w-full bg-[#013330] text-white shadow-xl border-b border-[#024945]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
-        {/* Zone 1: Single text element wordmark with custom logo */}
+        {/* Zone 1: Wordmark with logo */}
         <button
           onClick={() => onSelectTab('landing')}
           className="flex items-center gap-2.5 text-left group shrink-0 focus:outline-none cursor-pointer"
@@ -69,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
           <BlockLicenseLogo size={36} variant="full" theme="dark" interactive={true} />
         </button>
 
-        {/* Zone 2: 4-6 clean text navigation links */}
+        {/* Zone 2: Navigation links */}
         <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-slate-200">
           {navLinks.map(link => {
             const isActive = currentTab === link.id;
@@ -92,97 +83,67 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
         {/* Zone 3: Primary actions (Wallet & Auth Controls) */}
         <div className="flex items-center gap-2.5">
           
-          {/* Web3 Wallet Switcher */}
-          <div className="relative">
+          {/* Web3 Wallet Connect / Status */}
+          {isConnected && address ? (
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setAccountDropdownOpen(!accountDropdownOpen);
+                  setUserMenuOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono bg-[#024440] hover:bg-[#035954] border border-[#046e67] rounded-xl text-white shadow-sm transition-colors cursor-pointer"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="font-semibold text-slate-100">
+                  {`${address.slice(0, 6)}...${address.slice(-4)}`}
+                </span>
+                {isAdmin && (
+                  <span className="text-[10px] text-emerald-300 bg-emerald-950/80 px-1.5 py-0.5 rounded font-bold border border-emerald-500/30">
+                    Admin
+                  </span>
+                )}
+                <ChevronDown size={14} className="text-slate-300" />
+              </button>
+
+              {accountDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white text-slate-900 border border-blue-200 rounded-2xl shadow-2xl py-2 z-50 text-xs animate-in fade-in">
+                  <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
+                    <div className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
+                      Connected Wallet
+                    </div>
+                    <div className="font-mono text-[#013330] font-bold mt-1 truncate">
+                      {address}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                      <span>Network: <strong className="text-[#013330]">{networkName}</strong></span>
+                      <span>Balance: <strong className="font-mono text-emerald-700">{balance}</strong></span>
+                    </div>
+                  </div>
+
+                  <div className="px-2 pt-2">
+                    <button
+                      onClick={() => {
+                        disconnectWallet();
+                        setAccountDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 transition-colors cursor-pointer font-medium"
+                    >
+                      <LogOut size={14} />
+                      <span>Disconnect Wallet</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
             <button
-              onClick={() => {
-                setAccountDropdownOpen(!accountDropdownOpen);
-                setUserMenuOpen(false);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono bg-[#024440] hover:bg-[#035954] border border-[#046e67] rounded-xl text-white shadow-sm transition-colors cursor-pointer"
+              onClick={() => connectWallet()}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#024440] hover:bg-[#035954] border border-[#046e67] rounded-xl transition-colors cursor-pointer shadow-sm"
             >
-              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-slate-400'}`} />
-              <span className="hidden sm:inline font-semibold text-slate-100">
-                {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connect'}
-              </span>
-              <span className="text-[11px] text-emerald-300 font-semibold hidden md:inline">
-                ({isAdmin ? 'Admin' : 'Owner'})
-              </span>
-              <ChevronDown size={14} className="text-slate-300" />
+              <Wallet size={14} className="text-emerald-400" />
+              <span>Connect Wallet</span>
             </button>
-
-            {accountDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white text-slate-900 border border-blue-200 rounded-2xl shadow-2xl py-2 z-50 text-xs animate-in fade-in">
-                <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
-                  <div className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
-                    Connected Wallet
-                  </div>
-                  <div className="font-mono text-[#013330] font-bold mt-1 truncate">
-                    {address || 'Not connected'}
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    Network: <span className="text-[#013330] font-bold">{networkName}</span>
-                  </div>
-                </div>
-
-                {/* Role Switcher for Testing */}
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <div className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-                    Switch Test Account / Role
-                  </div>
-                  <div className="space-y-1">
-                    {DEMO_ACCOUNTS.map(acc => {
-                      const isCurrent = address?.toLowerCase() === acc.address.toLowerCase();
-                      return (
-                        <button
-                          key={acc.address}
-                          onClick={() => {
-                            selectDemoAccount(acc.address);
-                            setAccountDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer ${
-                            isCurrent
-                              ? 'bg-emerald-50 text-[#013330] font-bold'
-                              : 'text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div>
-                            <div className="text-xs font-semibold">{acc.name}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">
-                              {acc.address.slice(0, 6)}...{acc.address.slice(-4)}
-                            </div>
-                          </div>
-                          {isCurrent && <CheckCircle2 size={13} className="text-[#013330] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Live MetaMask Connect */}
-                <div className="px-2 pt-1 pb-1">
-                  <button
-                    onClick={() => {
-                      connectWallet();
-                      setAccountDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-2.5 py-1.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-[#013330] rounded-lg flex items-center gap-2 transition-colors cursor-pointer font-medium"
-                  >
-                    <Wallet size={14} className="text-amber-500" />
-                    <span>Connect Live MetaMask</span>
-                  </button>
-
-                  <button
-                    onClick={handleResetDemo}
-                    className="w-full text-left px-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg flex items-center gap-2 transition-colors mt-0.5 cursor-pointer"
-                  >
-                    <RotateCcw size={14} />
-                    <span>Reset Demo State</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Authentication State Button / Menu */}
           {isAuthenticated && user ? (
@@ -195,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
                 className="flex items-center gap-2 px-2.5 py-1.5 text-xs bg-[#024440] hover:bg-[#035954] border border-[#046e67] text-white rounded-xl shadow-sm transition-colors cursor-pointer"
               >
                 <div className="w-5 h-5 rounded-full bg-emerald-400 text-[#013330] flex items-center justify-center font-bold text-[10px]">
-                  {user.name.charAt(0)}
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <span className="hidden sm:inline font-semibold max-w-[100px] truncate text-white">
                   {user.name}
@@ -208,48 +169,19 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
                   <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
                     <div className="font-bold text-[#013330]">{user.name}</div>
                     <div className="text-[11px] text-slate-500 truncate">{user.email}</div>
-                    <span className="inline-block mt-1 text-[10px] font-mono uppercase px-2 py-0.5 bg-emerald-50 text-[#013330] rounded font-bold border border-emerald-200">
-                      {user.role}
-                    </span>
-                  </div>
-
-                  {/* Switch Demo Roles in Session */}
-                  <div className="px-3 py-2 border-b border-slate-100">
-                    <div className="text-[11px] text-slate-500 font-semibold mb-1">
-                      Quick Demo Role Switch:
-                    </div>
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => {
-                          switchDemoRole('VENDOR_ADMIN');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1 rounded text-slate-700 hover:bg-emerald-50 hover:text-[#013330] transition-colors"
-                      >
-                        Publisher Admin
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchDemoRole('CUSTOMER');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1 rounded text-slate-700 hover:bg-emerald-50 hover:text-[#013330] transition-colors"
-                      >
-                        Enterprise Customer
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchDemoRole('AUDITOR');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1 rounded text-slate-700 hover:bg-emerald-50 hover:text-[#013330] transition-colors"
-                      >
-                        Security Auditor
-                      </button>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 bg-emerald-50 text-[#013330] rounded font-bold border border-emerald-200">
+                        {user.role}
+                      </span>
+                      {user.organization && (
+                        <span className="text-[10px] text-slate-500 truncate">
+                          {user.organization}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="px-2 pt-1">
+                  <div className="px-2 pt-1 pb-1">
                     <button
                       onClick={() => {
                         logout();
@@ -314,28 +246,61 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, onRefre
             </button>
           ))}
 
-          {!isAuthenticated && (
-            <div className="pt-2 border-t border-[#024945] flex gap-2">
+          <div className="pt-3 border-t border-[#024945] space-y-2">
+            {!isConnected && (
               <button
                 onClick={() => {
-                  onSelectTab('login');
+                  connectWallet();
                   setMobileMenuOpen(false);
                 }}
-                className="flex-1 py-2 text-center text-xs text-white bg-[#024440] rounded-lg font-semibold"
+                className="w-full py-2 text-center text-xs text-white bg-[#024440] hover:bg-[#035954] border border-[#046e67] rounded-lg font-semibold flex items-center justify-center gap-1.5"
               >
-                Log In
+                <Wallet size={14} className="text-emerald-400" />
+                <span>Connect Wallet</span>
               </button>
-              <button
-                onClick={() => {
-                  onSelectTab('signup');
-                  setMobileMenuOpen(false);
-                }}
-                className="flex-1 py-2 text-center text-xs text-[#013330] bg-emerald-400 rounded-lg font-bold shadow-sm"
-              >
-                Sign Up
-              </button>
-            </div>
-          )}
+            )}
+
+            {!isAuthenticated ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    onSelectTab('login');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex-1 py-2 text-center text-xs text-white bg-[#024440] rounded-lg font-semibold flex items-center justify-center gap-1"
+                >
+                  <LogIn size={13} />
+                  <span>Log In</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onSelectTab('signup');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex-1 py-2 text-center text-xs text-[#013330] bg-emerald-400 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1"
+                >
+                  <UserPlus size={13} />
+                  <span>Sign Up</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between pt-1 text-xs">
+                <span className="text-slate-300 font-semibold truncate">
+                  Logged in as {user?.name}
+                </span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                    onSelectTab('landing');
+                  }}
+                  className="text-rose-400 hover:text-rose-300 font-bold"
+                >
+                  Log Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>

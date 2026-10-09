@@ -28,7 +28,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR'>('VENDOR_ADMIN');
-  const [walletAddress, setWalletAddress] = useState(address || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+  const [walletAddress, setWalletAddress] = useState(address || '');
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

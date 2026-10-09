@@ -18,28 +18,6 @@ export const SEPOLIA_CHAIN_ID = 11155111;
 // Default demo company admin address from Hardhat Account #0
 export const COMPANY_ADMIN_ADDRESS = contractConfig.companyAdmin || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
-// Hardhat standard test accounts for quick demo role switching
-export const DEMO_ACCOUNTS = [
-  {
-    name: 'Software Company (Admin)',
-    address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-    role: 'ADMIN',
-    description: 'Issues & revokes licenses. Deployer authority.'
-  },
-  {
-    name: 'Customer Wallet A (Abhishek)',
-    address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-    role: 'OWNER',
-    description: 'Holds license BL-2026-000001. Can transfer ownership.'
-  },
-  {
-    name: 'Customer Wallet B (Rahul)',
-    address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-    role: 'USER',
-    description: 'Recipient of license transfers.'
-  }
-];
-
 export class BlockchainService {
   private static instance: BlockchainService;
   public contractAddress: string = contractConfig.address;

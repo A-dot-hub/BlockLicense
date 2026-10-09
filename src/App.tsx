@@ -107,7 +107,7 @@ export default function App() {
             {currentTab === 'detail' && (
               <LicenseDetailPage
                 key={`${routeParam}-${dataVersion}`}
-                licenseId={routeParam || 'BL-2026-000001'}
+                licenseId={routeParam || ''}
                 onNavigate={handleNavigate}
               />
             )}

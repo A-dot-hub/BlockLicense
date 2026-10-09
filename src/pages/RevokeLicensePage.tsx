@@ -23,8 +23,8 @@ export const RevokeLicensePage: React.FC<RevokeLicensePageProps> = ({
 }) => {
   const { address, isAdmin } = useWallet();
 
-  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || 'BL-2026-000001');
-  const [revocationReason, setRevocationReason] = useState<string>('Breach of End User License Agreement (EULA)');
+  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || '');
+  const [revocationReason, setRevocationReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);

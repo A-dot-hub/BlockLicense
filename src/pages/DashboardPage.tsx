@@ -59,14 +59,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     count
   }));
 
-  // Timeline data
+  // Dynamic activity data reflecting real state
+  const currentMonth = new Date().toLocaleString('default', { month: 'short' }) + ' ' + new Date().getFullYear().toString().slice(-2);
   const activityData = [
-    { month: 'May 26', issued: 12, verified: 45 },
-    { month: 'Jun 26', issued: 19, verified: 68 },
-    { month: 'Jul 26', issued: 28, verified: 104 },
-    { month: 'Aug 26', issued: 36, verified: 132 },
-    { month: 'Sep 26', issued: 48, verified: 185 },
-    { month: 'Oct 26', issued: Math.max(total, 54), verified: 215 }
+    { month: currentMonth, issued: total, verified: logs.length }
   ];
 
   return (

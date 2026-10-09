@@ -25,8 +25,8 @@ export const TransferLicensePage: React.FC<TransferLicensePageProps> = ({
 }) => {
   const { address, isConnected } = useWallet();
 
-  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || 'BL-2026-000001');
-  const [recipientAddress, setRecipientAddress] = useState<string>('0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC');
+  const [selectedLicenseId, setSelectedLicenseId] = useState<string>(initialLicenseId || '');
+  const [recipientAddress, setRecipientAddress] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);

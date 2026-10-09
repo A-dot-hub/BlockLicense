@@ -25,40 +25,10 @@ interface AuthContextType {
     walletAddress?: string;
   }) => Promise<boolean>;
   logout: () => void;
-  switchDemoRole: (role: 'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR') => void;
 }
 
 const STORAGE_KEY_AUTH = 'blocklicense_user_session_v1';
-
-const DEMO_USERS: Record<'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR', UserProfile> = {
-  VENDOR_ADMIN: {
-    id: 'usr-admin-1',
-    name: 'Abhishek Jaiswar',
-    email: 'abhishek@blocklicense.io',
-    role: 'VENDOR_ADMIN',
-    organization: 'BlockLicense Systems Inc.',
-    walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-    joinedAt: '2026-01-10T08:00:00Z'
-  },
-  CUSTOMER: {
-    id: 'usr-cust-1',
-    name: 'Rahul Verma',
-    email: 'rahul.verma@fintech.io',
-    role: 'CUSTOMER',
-    organization: 'FinTech Dynamics Corp',
-    walletAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-    joinedAt: '2026-03-15T11:20:00Z'
-  },
-  AUDITOR: {
-    id: 'usr-audit-1',
-    name: 'Elena Rostova',
-    email: 'elena@cyberdefense.org',
-    role: 'AUDITOR',
-    organization: 'Independent Software Security Audit',
-    walletAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-    joinedAt: '2026-05-20T14:45:00Z'
-  }
-};
+const STORAGE_KEY_USERS = 'blocklicense_users_registry_v1';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -69,11 +39,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         return JSON.parse(saved);
       } catch {
-        return DEMO_USERS.VENDOR_ADMIN;
+        return null;
       }
     }
-    // Default to vendor admin for seamless demo readiness
-    return DEMO_USERS.VENDOR_ADMIN;
+    return null;
   });
 
   useEffect(() => {
@@ -84,52 +53,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  const loginWithCredentials = async (email: string, password: string): Promise<boolean> => {
-    // Artificial mini-delay to simulate credential verification
-    await new Promise(r => setTimeout(r, 450));
+  const getRegisteredUsers = (): Array<UserProfile & { password?: string }> => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_USERS);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
 
-    // Match against demo users or synthesize an enterprise account
-    const matched = Object.values(DEMO_USERS).find(
-      u => u.email.toLowerCase() === email.toLowerCase()
-    );
+  const loginWithCredentials = async (email: string, password: string): Promise<boolean> => {
+    await new Promise(r => setTimeout(r, 400));
+    const users = getRegisteredUsers();
+    const cleanEmail = email.trim().toLowerCase();
+
+    const matched = users.find(u => u.email.toLowerCase() === cleanEmail);
 
     if (matched) {
-      setUser(matched);
+      // Validate password if stored
+      if (matched.password && matched.password !== password) {
+        throw new Error('Incorrect password.');
+      }
+      const { password: _, ...profile } = matched;
+      setUser(profile);
       return true;
     }
 
-    // Dynamic login fallback for any email
-    const dynamicUser: UserProfile = {
-      id: 'usr-' + Date.now(),
-      name: email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      email,
-      role: 'VENDOR_ADMIN',
-      organization: 'Enterprise Partner Org',
-      walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-      joinedAt: new Date().toISOString()
-    };
-    setUser(dynamicUser);
-    return true;
+    // If user has not signed up yet
+    throw new Error('Account not found. Please click Sign Up to create your account.');
   };
 
   const loginWithWallet = async (walletAddress: string): Promise<boolean> => {
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise(r => setTimeout(r, 300));
     const cleanAddr = walletAddress.toLowerCase();
+    const users = getRegisteredUsers();
 
-    let matchedRole: 'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR' = 'CUSTOMER';
-    if (cleanAddr.includes('f39f') || cleanAddr === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
-      matchedRole = 'VENDOR_ADMIN';
+    // Check if wallet is already linked to a registered account
+    const matched = users.find(u => u.walletAddress?.toLowerCase() === cleanAddr);
+    if (matched) {
+      const { password: _, ...profile } = matched;
+      setUser(profile);
+      return true;
     }
 
+    // Automatically establish session for new wallet identity
     const walletUser: UserProfile = {
       id: 'wallet-' + walletAddress.slice(2, 8),
       name: `Web3 Operator (${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)})`,
-      email: `${walletAddress.slice(2, 8)}@web3.identity`,
-      role: matchedRole,
+      email: `${walletAddress.slice(2, 8).toLowerCase()}@web3.identity`,
+      role: 'CUSTOMER',
       walletAddress,
-      organization: matchedRole === 'VENDOR_ADMIN' ? 'Authorized Software Company' : 'Verified Software Licensee',
+      organization: 'Verified Software Licensee',
       joinedAt: new Date().toISOString()
     };
+
+    // Save to user registry
+    users.push(walletUser);
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
 
     setUser(walletUser);
     return true;
@@ -143,28 +123,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     organization?: string;
     walletAddress?: string;
   }): Promise<boolean> => {
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 450));
+    const users = getRegisteredUsers();
+    const cleanEmail = data.email.trim().toLowerCase();
 
-    const newUser: UserProfile = {
+    if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+      throw new Error('An account with this email already exists. Please log in.');
+    }
+
+    const newUser: UserProfile & { password?: string } = {
       id: 'usr-' + Date.now(),
-      name: data.name,
-      email: data.email,
+      name: data.name.trim(),
+      email: data.email.trim(),
       role: data.role,
-      organization: data.organization || 'Independent Enterprise',
-      walletAddress: data.walletAddress || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      organization: data.organization?.trim() || 'Independent Enterprise',
+      walletAddress: data.walletAddress?.trim() || undefined,
+      password: data.password,
       joinedAt: new Date().toISOString()
     };
 
-    setUser(newUser);
+    users.push(newUser);
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+
+    const { password: _, ...profile } = newUser;
+    setUser(profile);
     return true;
   };
 
   const logout = () => {
     setUser(null);
-  };
-
-  const switchDemoRole = (role: 'VENDOR_ADMIN' | 'CUSTOMER' | 'AUDITOR') => {
-    setUser(DEMO_USERS[role]);
   };
 
   return (
@@ -175,8 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithCredentials,
         loginWithWallet,
         signup,
-        logout,
-        switchDemoRole
+        logout
       }}
     >
       {children}
